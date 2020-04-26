@@ -83,6 +83,8 @@ namespace Biometric_Document
 
         public bool IsLoggedInReg { get; set; }
         public bool IsLoggedInDash { get; set; }
+        public bool IsLoggedInAdmin { get; set; }
+
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -105,19 +107,45 @@ namespace Biometric_Document
             command.Parameters.Add("@usn", MySqlDbType.VarChar).Value = user;
             command.Parameters.Add("@pas", MySqlDbType.VarChar).Value = pass;
 
+            
+
             adapter.SelectCommand = command;
 
             adapter.Fill(table);
 
             if (table.Rows.Count == 1)
             {
-                AutoClosingMessageBox.Show("Access Granted", "Caption", 1500);
+                int acc_type = 0;
 
-                db.closeConnection();
+                db.openConnection();
+                MySqlDataReader rdr = command.ExecuteReader();
+                while (rdr.Read())
+                {
+                    acc_type = rdr.GetInt16(5);
+                }
 
-                this.Close();
-                IsLoggedInDash = true;
-                DB.username = user;
+                if (acc_type == 1)
+                {
+                    AutoClosingMessageBox.Show("Access Granted", "Welcome Administrator", 1500);
+
+                    db.closeConnection();
+
+                    this.Close();
+                    IsLoggedInAdmin = true;
+                    DB.username = user;
+
+                }
+                else {
+                    AutoClosingMessageBox.Show("Access Granted", "Caption", 1500);
+
+                    db.closeConnection();
+
+                    this.Close();
+                    IsLoggedInDash = true;
+                    DB.username = user;
+                }
+
+                
            
             }
             else

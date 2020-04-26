@@ -16,6 +16,7 @@ namespace Biometric_Document
             Form1 frm1 = new Form1();
             Form2 frm2 = new Form2();
             Form3 frm3 = new Form3();
+            Form4 frm4 = new Form4();
             Application.Run(frm1);
 
             if (frm1.IsLoggedInReg)
@@ -29,6 +30,12 @@ namespace Biometric_Document
                 frm3 = new Form3();
 
                 Application.Run(frm3);
+            }
+
+            if (frm1.IsLoggedInAdmin)
+            {
+                frm4 = new Form4(); ;
+                Application.Run(frm4);
             }
 
             if (frm2.IsLoggedInLogin)
