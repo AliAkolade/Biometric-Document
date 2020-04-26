@@ -110,8 +110,9 @@ namespace Biometric_Document
                 //Configure OCSP which must conform to RFC 2560
                 signature.ConfigureHttpOCSP(null, null);
 
+                //
                 DB db = new DB();
-                MySqlCommand command = new MySqlCommand("INSERT INTO `receipts`(`matric`, `t_id`, `r_id`, `paid`, `due`) VALUES (@matric, @t_id, @r_id, @paid, @due)", db.getConnection());
+                MySqlCommand command = new MySqlCommand("INSERT INTO `receipts`(`Matric Number`, `Transaction ID`, `Receipt ID`, `Amount Paid`, `Amount Due`) VALUES (@matric, @t_id, @r_id, @paid, @due)", db.getConnection());
                 command.Parameters.Add("@matric", MySqlDbType.VarChar).Value = matric;
                 command.Parameters.Add("@t_id", MySqlDbType.Int64).Value = t_id;
                 command.Parameters.Add("@r_id", MySqlDbType.Int64).Value = r_id;
