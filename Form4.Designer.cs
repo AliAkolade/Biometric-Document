@@ -62,7 +62,7 @@
             // 
             // GenerateButton
             // 
-            this.GenerateButton.Location = new System.Drawing.Point(39, 238);
+            this.GenerateButton.Location = new System.Drawing.Point(36, 254);
             this.GenerateButton.Name = "GenerateButton";
             this.GenerateButton.Size = new System.Drawing.Size(114, 23);
             this.GenerateButton.TabIndex = 13;
@@ -72,7 +72,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(10, 191);
+            this.label3.Location = new System.Drawing.Point(9, 191);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(84, 13);
             this.label3.TabIndex = 12;
