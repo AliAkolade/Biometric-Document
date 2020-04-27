@@ -3,7 +3,9 @@ using SecuGen.SecuBSPPro.Windows;
 using Spire.Doc;
 using Spire.Pdf;
 using Spire.Pdf.Security;
+using Spire.Pdf.Widget;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
@@ -69,7 +71,6 @@ namespace Biometric_Document
                     f_data = rdr.GetString(4);
                     name = rdr.GetString(2);
                     matric = rdr.GetString(3);
-                    AutoClosingMessageBox.Show(matric, matric, 1000000);
                 }
                 rdr.Close();
                 matric = matric.ToLower();
@@ -172,6 +173,168 @@ namespace Biometric_Document
         {
             resultsTable.DataSource = GetResults();
 
+        }
+
+        private void VerifySC_Click(object sender, EventArgs e)
+        {
+            err = m_SecuBSP.EnumerateDevice();
+            pdf = new PdfDocument();
+
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "PDF document (*.pdf)|*.pdf";
+            DialogResult result = dialog.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                try
+                {
+                    string pdfFile = dialog.FileName;
+
+                    List<PdfSignature> signatures = new List<PdfSignature>();
+                    //Open a pdf document and get its all signatures
+                    using (PdfDocument pdf = new PdfDocument())
+                    {
+                        pdf.LoadFromFile(pdfFile);
+                        PdfFormWidget form = pdf.Form as PdfFormWidget;
+                        for (int i = 0; i < form.FieldsWidget.Count; i++)
+                        {
+                            PdfSignatureFieldWidget field = form.FieldsWidget[i] as PdfSignatureFieldWidget;
+                            if (field != null && field.Signature != null)
+                            {
+                                PdfSignature signature = field.Signature;
+                                signatures.Add(signature);
+                            }
+                        }
+
+                        //Get the first signature
+                        PdfSignature signatureOne = signatures[0];
+
+                        //Detect if the pdf document was modified
+                        bool modified = signatureOne.VerifyDocModified();
+
+                        //FIND
+                        err = m_SecuBSP.EnumerateDevice();
+                        m_SecuBSP.DeviceID = (Int16)DeviceID.AUTO;
+
+                        //OPEN
+                        err = m_SecuBSP.OpenDevice();
+                        if (err == BSPError.ERROR_NONE)
+                        {
+                            if (!modified)
+                            {
+                                PdfDocumentInformation docInfo = pdf.DocumentInformation;
+                                err = m_SecuBSP.Capture(FIRPurpose.VERIFY);
+                                if (err == BSPError.ERROR_NONE)
+                                {
+                                    err = m_SecuBSP.VerifyMatch(m_SecuBSP.FIRTextData, docInfo.Subject);
+
+                                    if (err == BSPError.ERROR_NONE)
+                                    {
+                                        if (m_SecuBSP.IsMatched)
+                                        {
+                                            AutoClosingMessageBox.Show("The Document is Authentic", "", 1500);
+                                        }
+                                        else { AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500); }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500);
+                            }
+                        }
+                        else { AutoClosingMessageBox.Show("No Scanner Detected", "Error!", 1000); }
+                    }
+                }
+                catch (Exception exe)
+                {
+                    MessageBox.Show("Document is not Authentic", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void VerifyDB_Click(object sender, EventArgs e)
+        {
+            if (matricTextBox.Text.Equals("") || matricTextBox.Text.Equals("Input Matric")) { MessageBox.Show("Please Input a Matric Number", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error); } 
+            else
+            { 
+            MySqlCommand command = new MySqlCommand("SELECT * FROM `data` WHERE `matric`=@user", db.getConnection());
+            command.Parameters.Add("@user", MySqlDbType.VarChar).Value = matricTextBox.Text;
+            db.openConnection();
+            MySqlDataReader rdr = command.ExecuteReader();
+            f_data = "";
+            while (rdr.Read())
+            {
+                f_data = rdr.GetString(4);
+            }
+            rdr.Close();
+                if (f_data.Equals("")) { MessageBox.Show("Wrong Matric Number", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                else
+                {
+                    pdf = new PdfDocument();
+
+                    OpenFileDialog dialog = new OpenFileDialog();
+                    dialog.Filter = "PDF document (*.pdf)|*.pdf";
+                    DialogResult result = dialog.ShowDialog();
+
+                    if (result == DialogResult.OK)
+                    {
+                        try
+                        {
+                            string pdfFile = dialog.FileName;
+
+                            List<PdfSignature> signatures = new List<PdfSignature>();
+                            //Open a pdf document and get its all signatures
+                            using (PdfDocument pdf = new PdfDocument())
+                            {
+                                pdf.LoadFromFile(pdfFile);
+                                PdfFormWidget form = pdf.Form as PdfFormWidget;
+                                for (int i = 0; i < form.FieldsWidget.Count; i++)
+                                {
+                                    PdfSignatureFieldWidget field = form.FieldsWidget[i] as PdfSignatureFieldWidget;
+                                    if (field != null && field.Signature != null)
+                                    {
+                                        PdfSignature signature = field.Signature;
+                                        signatures.Add(signature);
+                                    }
+                                }
+
+                                //Get the first signature
+                                PdfSignature signatureOne = signatures[0];
+
+                                //Detect if the pdf document was modified
+                                bool modified = signatureOne.VerifyDocModified();
+
+                                if (!modified)
+                                {
+                                    PdfDocumentInformation docInfo = pdf.DocumentInformation;
+                                    err = m_SecuBSP.Capture(FIRPurpose.VERIFY);
+
+                                    err = m_SecuBSP.VerifyMatch(f_data, docInfo.Subject);
+
+                                    if (err == BSPError.ERROR_NONE)
+                                    {
+                                        if (m_SecuBSP.IsMatched)
+                                        {
+                                            AutoClosingMessageBox.Show("The Document is Authentic", "", 1500);
+                                        }
+                                        else { AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500); }
+                                    }
+                                }
+                                else
+                                {
+                                    AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500);
+                                }
+
+                            }
+                        }
+                        catch (Exception exe)
+                        {
+                            MessageBox.Show("Document is not Authentic", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
         }
     }
 }

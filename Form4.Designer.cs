@@ -39,26 +39,29 @@
             this.label1 = new System.Windows.Forms.Label();
             this.matricNo = new System.Windows.Forms.TextBox();
             this.resultsTable = new System.Windows.Forms.DataGridView();
+            this.matricTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.resultsTable)).BeginInit();
             this.SuspendLayout();
             // 
             // VerifySC
             // 
-            this.VerifySC.Location = new System.Drawing.Point(27, 396);
+            this.VerifySC.Location = new System.Drawing.Point(27, 432);
             this.VerifySC.Name = "VerifySC";
             this.VerifySC.Size = new System.Drawing.Size(143, 23);
             this.VerifySC.TabIndex = 15;
             this.VerifySC.Text = "Verify From Scanner";
             this.VerifySC.UseVisualStyleBackColor = true;
+            this.VerifySC.Click += new System.EventHandler(this.VerifySC_Click);
             // 
             // VerifyDB
             // 
             this.VerifyDB.Location = new System.Drawing.Point(27, 341);
             this.VerifyDB.Name = "VerifyDB";
-            this.VerifyDB.Size = new System.Drawing.Size(143, 23);
+            this.VerifyDB.Size = new System.Drawing.Size(151, 23);
             this.VerifyDB.TabIndex = 14;
             this.VerifyDB.Text = "Verify From Server";
             this.VerifyDB.UseVisualStyleBackColor = true;
+            this.VerifyDB.Click += new System.EventHandler(this.VerifyDB_Click);
             // 
             // GenerateButton
             // 
@@ -141,11 +144,21 @@
             this.resultsTable.Size = new System.Drawing.Size(593, 430);
             this.resultsTable.TabIndex = 21;
             // 
+            // matricTextBox
+            // 
+            this.matricTextBox.Location = new System.Drawing.Point(60, 370);
+            this.matricTextBox.Name = "matricTextBox";
+            this.matricTextBox.Size = new System.Drawing.Size(100, 20);
+            this.matricTextBox.TabIndex = 22;
+            this.matricTextBox.Text = "Input Matric";
+            this.matricTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
             // Form4
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 491);
+            this.Controls.Add(this.matricTextBox);
             this.Controls.Add(this.resultsTable);
             this.Controls.Add(this.matricNo);
             this.Controls.Add(this.label1);
@@ -179,5 +192,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox matricNo;
         private System.Windows.Forms.DataGridView resultsTable;
+        private System.Windows.Forms.TextBox matricTextBox;
     }
 }
