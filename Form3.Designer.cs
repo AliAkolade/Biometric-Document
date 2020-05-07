@@ -36,6 +36,8 @@
             this.ReceiptID = new System.Windows.Forms.TextBox();
             this.TransactionID = new System.Windows.Forms.TextBox();
             this.VerifySC = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -63,7 +65,7 @@
             this.GenerateButton.Name = "GenerateButton";
             this.GenerateButton.Size = new System.Drawing.Size(114, 23);
             this.GenerateButton.TabIndex = 6;
-            this.GenerateButton.Text = "Generate Receipt";
+            this.GenerateButton.Text = "Generate Document";
             this.GenerateButton.UseVisualStyleBackColor = true;
             this.GenerateButton.Click += new System.EventHandler(this.GenerateButton_Click);
             // 
@@ -109,11 +111,31 @@
             this.VerifySC.UseVisualStyleBackColor = true;
             this.VerifySC.Click += new System.EventHandler(this.VerifySC_Click);
             // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(117, 88);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(103, 13);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Generate Document";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(465, 108);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(90, 13);
+            this.label5.TabIndex = 10;
+            this.label5.Text = "Verify Documents";
+            // 
             // Form3
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(724, 450);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.VerifySC);
             this.Controls.Add(this.VerifyDB);
             this.Controls.Add(this.GenerateButton);
@@ -140,5 +162,7 @@
         private System.Windows.Forms.TextBox ReceiptID;
         private System.Windows.Forms.TextBox TransactionID;
         private System.Windows.Forms.Button VerifySC;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
     }
 }
