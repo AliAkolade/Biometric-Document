@@ -15,35 +15,86 @@ namespace Biometric_Document
 {
     public partial class Form4 : Form
     {
-        private String user = DB.username;
-        private String f_data;
-        private String matric;
-        private String name;
-        private DB db = new DB();
-        private DataTable table = new DataTable();
-        private MySqlDataAdapter adapter = new MySqlDataAdapter();
         private static SecuBSPMx m_SecuBSP = new SecuBSPMx();
-        private PdfDocument pdf = new PdfDocument();
+        private MySqlDataAdapter adapter = new MySqlDataAdapter();
+        private DB db = new DB();
         private BSPError err = m_SecuBSP.EnumerateDevice();
+        private string f_data;
+        private string matric;
+        private string name;
+        private PdfDocument pdf = new PdfDocument();
+        private DataTable table = new DataTable();
+        private String user = DB.username;
 
         public Form4()
         {
             InitializeComponent();
         }
 
-        private DataTable GetResults()
+        private void button1_Click(object sender, EventArgs e)
         {
-            DataTable results = new DataTable();
+            resultsTable.DataSource = GetResults();
+        }
 
-            DB db = new DB();
-            MySqlCommand cmd = new MySqlCommand("SELECT * FROM receipts", db.getConnection());
-            db.openConnection();
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (textBox3.Text.Equals(textBox2.Text))
+            {
+                DB db = new DB();
+                MySqlCommand command = new MySqlCommand("INSERT INTO `data`(`user`, `pass`, `acc`) VALUES (@user, @pass, @acc)", db.getConnection());
+                command.Parameters.Add("@user", MySqlDbType.VarChar).Value = textBox1.Text;
+                command.Parameters.Add("@pass", MySqlDbType.VarChar).Value = textBox2.Text;
+                command.Parameters.Add("@acc", MySqlDbType.Bit).Value = 1;
 
-            MySqlDataReader reader = cmd.ExecuteReader();
-            results.Load(reader);
+                db.openConnection();
 
-            reader.Close();
-            return results;
+                if (checkUsername())
+                {
+                    AutoClosingMessageBox.Show("Username Already Taken", "ERROR", 1500);
+                }
+                else
+                {
+                    if (command.ExecuteNonQuery() == 1)
+                    {
+                        AutoClosingMessageBox.Show("Admin Account has been successfylly created", "ACCOUNT CREATION SUCCESSFUL", 1500);
+                    }
+                    else
+                    {
+                        AutoClosingMessageBox.Show("Error", "Caption", 1500);
+                    }
+                }
+
+                db.closeConnection();
+
+                Boolean checkUsername()
+                {
+                    DB dbb = new DB();
+                    String user = textBox1.Text;
+
+                    DataTable table = new DataTable();
+
+                    MySqlDataAdapter adapter = new MySqlDataAdapter();
+
+                    MySqlCommand comm = new MySqlCommand("SELECT * FROM `data` WHERE `user`=@usn", dbb.getConnection());
+                    comm.Parameters.Add("@usn", MySqlDbType.VarChar).Value = user;
+                    adapter.SelectCommand = comm;
+
+                    adapter.Fill(table);
+
+                    if (table.Rows.Count > 0)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                AutoClosingMessageBox.Show("Passwords Don't Match", "ERROR", 1500);
+            }
         }
 
         private void Form4_Load(object sender, EventArgs e)
@@ -57,11 +108,8 @@ namespace Biometric_Document
 
             if (!(TransactionID.Text.Equals("") || ReceiptID.Text.Equals("") || matricNo.Text.Equals("")))
             {
-                
-
                 MySqlCommand command = new MySqlCommand("SELECT * FROM `data` WHERE `matric`=@user", db.getConnection());
                 command.Parameters.Add("@user", MySqlDbType.VarChar).Value = matric;
-
 
                 db.openConnection();
                 MySqlDataReader rdr = command.ExecuteReader();
@@ -74,7 +122,8 @@ namespace Biometric_Document
                 }
                 rdr.Close();
                 matric = matric.ToLower();
-                if (matric.Equals(matricNo.Text)) {
+                if (matric.Equals(matricNo.Text))
+                {
                     String t_id = TransactionID.Text;
                     String r_id = ReceiptID.Text;
                     Document doc = new Document();
@@ -166,13 +215,104 @@ namespace Biometric_Document
                 else { AutoClosingMessageBox.Show("Please Input Valid Matric Number", "ERROR", 1000); }
             }
             else { AutoClosingMessageBox.Show("Please Input Valid Details", "ERROR", 1000); }
-
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private DataTable GetResults()
         {
-            resultsTable.DataSource = GetResults();
+            DataTable results = new DataTable();
 
+            DB db = new DB();
+            MySqlCommand cmd = new MySqlCommand("SELECT * FROM receipts", db.getConnection());
+            db.openConnection();
+
+            MySqlDataReader reader = cmd.ExecuteReader();
+            results.Load(reader);
+
+            reader.Close();
+            return results;
+        }
+
+        private void VerifyDB_Click(object sender, EventArgs e)
+        {
+            if (matricTextBox.Text.Equals("") || matricTextBox.Text.Equals("Input Matric")) { MessageBox.Show("Please Input a Matric Number", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            else
+            {
+                MySqlCommand command = new MySqlCommand("SELECT * FROM `data` WHERE `matric`=@user", db.getConnection());
+                command.Parameters.Add("@user", MySqlDbType.VarChar).Value = matricTextBox.Text;
+                db.openConnection();
+                MySqlDataReader rdr = command.ExecuteReader();
+                f_data = "";
+                while (rdr.Read())
+                {
+                    f_data = rdr.GetString(4);
+                }
+                rdr.Close();
+                if (f_data.Equals("")) { MessageBox.Show("Wrong Matric Number", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                else
+                {
+                    pdf = new PdfDocument();
+
+                    OpenFileDialog dialog = new OpenFileDialog();
+                    dialog.Filter = "PDF document (*.pdf)|*.pdf";
+                    DialogResult result = dialog.ShowDialog();
+
+                    if (result == DialogResult.OK)
+                    {
+                        try
+                        {
+                            string pdfFile = dialog.FileName;
+
+                            List<PdfSignature> signatures = new List<PdfSignature>();
+                            //Open a pdf document and get its all signatures
+                            using (PdfDocument pdf = new PdfDocument())
+                            {
+                                pdf.LoadFromFile(pdfFile);
+                                PdfFormWidget form = pdf.Form as PdfFormWidget;
+                                for (int i = 0; i < form.FieldsWidget.Count; i++)
+                                {
+                                    PdfSignatureFieldWidget field = form.FieldsWidget[i] as PdfSignatureFieldWidget;
+                                    if (field != null && field.Signature != null)
+                                    {
+                                        PdfSignature signature = field.Signature;
+                                        signatures.Add(signature);
+                                    }
+                                }
+
+                                //Get the first signature
+                                PdfSignature signatureOne = signatures[0];
+
+                                //Detect if the pdf document was modified
+                                bool modified = signatureOne.VerifyDocModified();
+
+                                if (!modified)
+                                {
+                                    PdfDocumentInformation docInfo = pdf.DocumentInformation;
+                                    err = m_SecuBSP.Capture(FIRPurpose.VERIFY);
+
+                                    err = m_SecuBSP.VerifyMatch(f_data, docInfo.Subject);
+
+                                    if (err == BSPError.ERROR_NONE)
+                                    {
+                                        if (m_SecuBSP.IsMatched)
+                                        {
+                                            AutoClosingMessageBox.Show("The Document is Authentic", "", 1500);
+                                        }
+                                        else { AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500); }
+                                    }
+                                }
+                                else
+                                {
+                                    AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500);
+                                }
+                            }
+                        }
+                        catch (Exception exe)
+                        {
+                            MessageBox.Show("Document is not Authentic", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
         }
 
         private void VerifySC_Click(object sender, EventArgs e)
@@ -249,90 +389,6 @@ namespace Biometric_Document
                 catch (Exception exe)
                 {
                     MessageBox.Show("Document is not Authentic", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void VerifyDB_Click(object sender, EventArgs e)
-        {
-            if (matricTextBox.Text.Equals("") || matricTextBox.Text.Equals("Input Matric")) { MessageBox.Show("Please Input a Matric Number", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error); } 
-            else
-            { 
-            MySqlCommand command = new MySqlCommand("SELECT * FROM `data` WHERE `matric`=@user", db.getConnection());
-            command.Parameters.Add("@user", MySqlDbType.VarChar).Value = matricTextBox.Text;
-            db.openConnection();
-            MySqlDataReader rdr = command.ExecuteReader();
-            f_data = "";
-            while (rdr.Read())
-            {
-                f_data = rdr.GetString(4);
-            }
-            rdr.Close();
-                if (f_data.Equals("")) { MessageBox.Show("Wrong Matric Number", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error); }
-                else
-                {
-                    pdf = new PdfDocument();
-
-                    OpenFileDialog dialog = new OpenFileDialog();
-                    dialog.Filter = "PDF document (*.pdf)|*.pdf";
-                    DialogResult result = dialog.ShowDialog();
-
-                    if (result == DialogResult.OK)
-                    {
-                        try
-                        {
-                            string pdfFile = dialog.FileName;
-
-                            List<PdfSignature> signatures = new List<PdfSignature>();
-                            //Open a pdf document and get its all signatures
-                            using (PdfDocument pdf = new PdfDocument())
-                            {
-                                pdf.LoadFromFile(pdfFile);
-                                PdfFormWidget form = pdf.Form as PdfFormWidget;
-                                for (int i = 0; i < form.FieldsWidget.Count; i++)
-                                {
-                                    PdfSignatureFieldWidget field = form.FieldsWidget[i] as PdfSignatureFieldWidget;
-                                    if (field != null && field.Signature != null)
-                                    {
-                                        PdfSignature signature = field.Signature;
-                                        signatures.Add(signature);
-                                    }
-                                }
-
-                                //Get the first signature
-                                PdfSignature signatureOne = signatures[0];
-
-                                //Detect if the pdf document was modified
-                                bool modified = signatureOne.VerifyDocModified();
-
-                                if (!modified)
-                                {
-                                    PdfDocumentInformation docInfo = pdf.DocumentInformation;
-                                    err = m_SecuBSP.Capture(FIRPurpose.VERIFY);
-
-                                    err = m_SecuBSP.VerifyMatch(f_data, docInfo.Subject);
-
-                                    if (err == BSPError.ERROR_NONE)
-                                    {
-                                        if (m_SecuBSP.IsMatched)
-                                        {
-                                            AutoClosingMessageBox.Show("The Document is Authentic", "", 1500);
-                                        }
-                                        else { AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500); }
-                                    }
-                                }
-                                else
-                                {
-                                    AutoClosingMessageBox.Show("The Document is not Authentic", "", 1500);
-                                }
-
-                            }
-                        }
-                        catch (Exception exe)
-                        {
-                            MessageBox.Show("Document is not Authentic", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }
                 }
             }
         }
